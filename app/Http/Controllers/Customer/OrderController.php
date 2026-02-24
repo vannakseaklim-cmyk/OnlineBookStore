@@ -11,7 +11,7 @@ class OrderController extends Controller
 {
      public function index()
     {
-        $orders = Order::where('customer_id', Auth::id()) // Only my orders
+        $orders = Order::where('customer_id', Auth::id()) 
             ->with(['items.book'])
             ->latest()
             ->paginate(10);
@@ -23,7 +23,7 @@ class OrderController extends Controller
 
     public function show(Order $order)
     {
-        // SECURITY: Check if the order belongs to the logged-in user
+        
         if ($order->customer_id !== Auth::id()) {
             abort(403, 'Unauthorized action.');
         }

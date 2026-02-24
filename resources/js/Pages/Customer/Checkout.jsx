@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Head, useForm, usePage, Link } from '@inertiajs/react';
 import Navbar from '@/Components/Navbar'; 
 import Footer from '@/Components/FooterGuest';
@@ -16,7 +16,7 @@ const InputField = React.memo(({ label, id, value, onChange, error, type = 'text
             className={`w-full border-0 bg-white rounded-xl p-3 shadow-sm focus:ring-2 focus:ring-[#bd874e] transition ${error ? 'ring-2 ring-red-500' : ''}`}
             value={value}
             onChange={onChange}
-            required // Basic HTML required validation
+            required 
         />
         {error && <p className="text-red-500 text-xs mt-1 font-medium">{error}</p>}
     </div>
@@ -37,7 +37,7 @@ export default function Checkout({ auth, cart }) {
         if (!flash?.error) return;
 
         Swal.fire({
-            text: flash.error, // Use backend message
+            text: flash.error, 
             icon: 'error',
             confirmButtonText: 'Browse Books',
             confirmButtonColor: '#bd874e',
@@ -50,8 +50,24 @@ export default function Checkout({ auth, cart }) {
 
     const submit = (e) => {
         e.preventDefault();
-        // Inertia handles validation via your Laravel backend logic
         post(route('checkout.placeOrder'), { forceFormData: true });
+    };
+
+    const [image, setImage] = useState(null);
+    const [preview, setPreview] = useState(null);
+
+    const handleImageChange = (e) => {
+        const file = e.target.files[0];
+        setImage(file);
+        setData('transaction_image', file);
+
+        if (file) {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setPreview(reader.result);
+            };
+            reader.readAsDataURL(file);
+        }
     };
 
 
@@ -99,7 +115,6 @@ export default function Checkout({ auth, cart }) {
                                                 key={method}
                                                 type="button"
                                                 onClick={() => setData('payment_method', method)}
-                                                // Updated button color from your code
                                                 className={`py-3 rounded-lg text-sm font-semibold transition-all border ${data.payment_method === method ? 'bg-[#375ed3] text-white border-stone-900' : 'bg-stone-50 text-stone-500 border-stone-100 hover:border-stone-300'}`}
                                             >
                                                 {method === 'delivery' ? '🚚 Cash on Delivery' : '💳 Online Payment'}
@@ -110,14 +125,36 @@ export default function Checkout({ auth, cart }) {
                                     {data.payment_method === 'online' && (
                                         <div className="bg-stone-50 p-6 rounded-lg border border-dashed border-stone-200 text-center">
                                             <p className="font-semibold text-stone-700 mb-3">Scan QR Code</p>
-                                            <img src="/images/image.png" alt="QR" className="w-32 mx-auto mb-4 rounded-md shadow-sm" />
+
+                                            <img 
+                                                src="/images/image.png" 
+                                                alt="QR" 
+                                                className="w-64 h-64 mx-auto mb-4 rounded-md shadow-sm object-contain" 
+                                            />
+
                                             <input
                                                 type="file"
                                                 className="w-full text-xs text-stone-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-bold file:bg-[#bd874e] file:text-white"
-                                                onChange={e => setData('transaction_image', e.target.files[0])}
+                                                onChange={handleImageChange}
+                                                accept="image/*"
                                             />
-                                            {errors.transaction_image && <p className="text-red-500 text-xs mt-1 font-medium">{errors.transaction_image}</p>}
+
+                                            {preview && (
+                                                <div className="mt-4 flex flex-col items-start">
+                                                    <img 
+                                                        src={preview} 
+                                                        alt="Payment proof preview" 
+                                                        className="w-32 h-40 rounded-md shadow-md border-2 border-[#bd874e] object-contain" 
+                                                    />
+                                                    {image && (
+                                                        <p className="text-xs text-stone-500 mt-2">
+                                                            {image.name}
+                                                        </p>
+                                                    )}
+                                                </div>
+                                            )}
                                         </div>
+
                                     )}
                                 </div>
                             </div>
@@ -144,7 +181,6 @@ export default function Checkout({ auth, cart }) {
                         </h2>
                         
                         <div className="space-y-4 mb-6">
-                            {/* Map only the dynamic items */}
                             {cart.items.map(item => (
                                 <div key={item.id} className="flex justify-between items-center text-sm">
                                     <span className="text-stone-700">
@@ -156,7 +192,6 @@ export default function Checkout({ auth, cart }) {
                                 </div>
                             ))}
 
-                            {/* Static Shipping Line (Remove key={item.id}) */}
                             <div className="flex justify-between items-center text-sm">
                                 <span className="text-stone-700">Shipping</span>
                                 <span className="font-semibold text-stone-900">$2.00</span>

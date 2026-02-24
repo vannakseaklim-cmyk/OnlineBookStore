@@ -34,6 +34,7 @@ class OrderTest extends TestCase
         $cart = \App\Models\ShoppingCart::create([
             'customer_id' => $user->id,
             'status'      => 0,
+            
         ]);
         
         $cart->items()->create([

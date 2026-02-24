@@ -1,13 +1,13 @@
 import Breadcrumb from '@/Components/Breadcrumb';
 import Pagination from '@/Components/Pagination';
 import AdminLayout from '@/Layouts/AdminLayout';
-import { Head, Link, useForm, router } from '@inertiajs/react'; // Added useForm
+import { Head, Link, useForm, router } from '@inertiajs/react'; 
 import Modal from '@/Components/Modal';
 import moment from 'moment';
-import { useState } from 'react'; // Added useState
+import { useState } from 'react'; 
 
 export default function OrdersPage({ ordersData }) {
-    // 1. Initialize Form
+    
     const { data, setData, patch, processing, reset } = useForm({
         status: '',
         cancel_reason: '',
@@ -30,14 +30,13 @@ const handleStatusChange = (order, newStatus) => {
         setData({ status: 'cancelled', cancel_reason: '' });
         setShowCancelModal(true);
     } else {
-        // 2. Use router.patch (NOT the patch from useForm)
-        // router.patch(url, data, options)
+
         router.patch(route('orders.updateStatus', order.id), {
             status: newStatus,
             cancel_reason: null
         }, { 
             preserveScroll: true,
-            // Force Inertia to update the page data
+           
             onSuccess: () => {
                 console.log("Status updated successfully!");
             },
@@ -49,14 +48,9 @@ const handleStatusChange = (order, newStatus) => {
 };
 
 
-
-
-
-    // 3. Handle Cancel Submit
     const submitCancel = (e) => {
         e.preventDefault();
         
-        // The 2nd argument 'data' contains {status: 'cancelled', cancel_reason: '...'}
         patch(route('orders.updateStatus', selectedOrder.id), data, {
             onSuccess: () => {
                 setShowCancelModal(false);
@@ -100,7 +94,6 @@ const handleStatusChange = (order, newStatus) => {
                                                     <td>{moment(order.order_date).format('DD/MM/YYYY HH:mm')}</td>
                                                     <td><b className="text-primary">${Number(order.order_total + 2).toFixed(2)}</b></td>
                                                     
-                                                    {/* FIX: Select must be inside a <td> */}
                                                     <td>
                                                         <select 
                                                             value={order.status} 
@@ -152,7 +145,6 @@ const handleStatusChange = (order, newStatus) => {
                 </div>
             </section>
 
-            {/* FIX: Modal moved OUTSIDE the table loop for better performance */}
             <Modal show={showCancelModal} onClose={() => setShowCancelModal(false)}>
                 <form onSubmit={submitCancel} className="p-6">
                     <h2 className="text-lg font-medium text-gray-900">

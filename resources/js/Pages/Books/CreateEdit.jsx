@@ -3,8 +3,12 @@ import InputError from '@/Components/InputError';
 import PrimaryButton from '@/Components/PrimaryButton';
 import AdminLayout from '@/Layouts/AdminLayout';
 import { Head, useForm, Link } from '@inertiajs/react';
+import { useState } from 'react';
 
 export default function BooksCreateEdit({ datas, categories }) {
+    const [preview, setPreview] = useState(null);
+    const [image, setImage] = useState(null);
+
     const { data, setData, post, errors, reset, processing } =
         useForm({
             title: datas?.title || '',
@@ -14,21 +18,32 @@ export default function BooksCreateEdit({ datas, categories }) {
             category_id: datas?.category_id || '',
             price: datas?.price || '',
             stock: datas?.stock || 0,
-            cover_image: null, // Added for file upload
-            _method: datas?.id ? 'PATCH' : 'POST', // Method spoofing for Edit
+            cover_image: null, 
+            _method: datas?.id ? 'PATCH' : 'POST', 
         });
+
+    const handleImageChange = (e) => {
+        const file = e.target.files[0];
+        setImage(file);
+        setData('cover_image', file);
+
+        if (file) {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setPreview(reader.result);
+            };
+            reader.readAsDataURL(file);
+        }
+    };
 
     const submit = (e) => {
         e.preventDefault();
         if (!datas?.id) {
-            // Create Mode
             post(route('books.store'), {
                 forceFormData: true,
                 onSuccess: () => reset(),
             });
         } else {
-            // Edit Mode: We use post with _method: 'PATCH' because PHP 
-            // doesn't support file uploads via native PATCH requests.
             post(route('books.update', datas.id), {
                 forceFormData: true,
             });
@@ -54,7 +69,7 @@ export default function BooksCreateEdit({ datas, categories }) {
                         <form onSubmit={submit}>
                             <div className="card-body">
                                 <div className="row">
-                                    {/* Book Title */}
+                                   
                                     <div className="form-group col-md-4">
                                         <label className="text-uppercase small font-weight-bold">
                                             <span className="text-danger">*</span> Book Title
@@ -68,7 +83,6 @@ export default function BooksCreateEdit({ datas, categories }) {
                                         <InputError message={errors.title} />
                                     </div>
 
-                                    {/* Book Pages */}
                                     <div className="form-group col-md-4">
                                         <label className="text-uppercase small font-weight-bold">
                                             <span className="text-danger">*</span> Book Pages
@@ -82,7 +96,6 @@ export default function BooksCreateEdit({ datas, categories }) {
                                         <InputError message={errors.pages} />
                                     </div>
 
-                                    {/* Author */}
                                     <div className="form-group col-md-4">
                                         <label className="text-uppercase small font-weight-bold">
                                             <span className="text-danger">*</span> Author
@@ -97,7 +110,6 @@ export default function BooksCreateEdit({ datas, categories }) {
                                     </div>
                                 </div>
 
-                                {/* Description */}
                                 <div className="form-group">
                                     <label className="text-uppercase small font-weight-bold">
                                         Description
@@ -113,7 +125,6 @@ export default function BooksCreateEdit({ datas, categories }) {
                                 </div>
 
                                 <div className="row">
-                                    {/* Category */}
                                     <div className="form-group col-md-4">
                                         <label className="text-uppercase small font-weight-bold">
                                             <span className="text-danger">*</span> Category
@@ -133,7 +144,6 @@ export default function BooksCreateEdit({ datas, categories }) {
                                         <InputError message={errors.category_id} />
                                     </div>
 
-                                    {/* Price */}
                                     <div className="form-group col-md-4">
                                         <label className="text-uppercase small font-weight-bold">
                                             <span className="text-danger">*</span> Price
@@ -147,7 +157,6 @@ export default function BooksCreateEdit({ datas, categories }) {
                                         <InputError message={errors.price} />
                                     </div>
 
-                                    {/* Stock */}
                                     <div className="form-group col-md-4">
                                         <label className="text-uppercase small font-weight-bold">
                                             <span className="text-danger">*</span> Stock
@@ -162,18 +171,30 @@ export default function BooksCreateEdit({ datas, categories }) {
                                     </div>
                                 </div>
 
-                                {/* Cover Image */}
                                 <div className="form-group">
                                     <label className="text-uppercase small font-weight-bold">Cover Image</label>
                                     <input
                                         type="file"
-                                        onChange={(e) => setData('cover_image', e.target.files[0])}
+                                        onChange={handleImageChange}
                                         className={`form-control-file ${errors.cover_image && 'is-invalid'}`}
+                                        accept="image/*"
                                     />
                                     {datas?.cover_image && !data.cover_image && (
                                         <div className="mt-2">
                                             <small>Current Cover:</small><br/>
                                             <img src={`/storage/${datas.cover_image}`} width="80" className="img-thumbnail" />
+                                        </div>
+                                    )}
+                                    {preview && (
+                                        <div className="mt-4">
+                                            <p className="text-sm font-weight-bold mb-2">New Cover Preview:</p>
+                                            <img 
+                                                src={preview} 
+                                                alt="Cover image preview" 
+                                                className="border-2 border-info" 
+                                                style={{width: '150px', height: '200px', objectFit: 'cover', borderRadius: '4px'}}
+                                            />
+                                            {image && <p className="text-xs text-muted mt-2">✓ {image.name}</p>}
                                         </div>
                                     )}
                                     <InputError message={errors.cover_image} />

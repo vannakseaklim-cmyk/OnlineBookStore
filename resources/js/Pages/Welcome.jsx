@@ -16,16 +16,15 @@ export default function Welcome({ auth, bestSellers = [] }) {
         return () => window.removeEventListener('scroll', handleScroll);
     }, []);
 
-    // ✅ ADD TO CART FUNCTION
+  
     const handleAddToCart = (bookId) => {
         if (!auth?.user) {
-            setLoginOpen(true); // Open modal if not logged in
+            setLoginOpen(true); 
             return;
         }
         router.post(route('cart.add', { book: bookId }), { quantity: 1 }, { preserveScroll: true });
     };
 
-    // ✅ VIEW BOOK FUNCTION
     const handleViewBook = (bookId) => {
         router.get(route('books.show', bookId));
     };
@@ -41,7 +40,7 @@ export default function Welcome({ auth, bestSellers = [] }) {
             /> 
 
             <div className="min-h-screen bg-[#f5eadf] text-stone-800">
-                {/* HERO SECTION */}
+         
                 <div className="relative min-h-[90vh] flex items-center pt-20">
                     <div className="container mx-auto px-6 grid lg:grid-cols-2 gap-12 items-center">
                         <div>

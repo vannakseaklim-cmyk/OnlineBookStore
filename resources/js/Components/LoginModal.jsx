@@ -13,35 +13,76 @@ export default function LoginModal({  isOpen: propIsOpen, onClose, onOpenRegiste
     });
 
     const [isOpen, setIsOpen] = useState(!!propIsOpen);
+    const [countdown, setCountdown] = useState(null);
+    const [isLocked, setIsLocked] = useState(false);
 
     useEffect(() => {
         if (propIsOpen !== undefined) setIsOpen(!!propIsOpen);
     }, [propIsOpen]);
+
+    // Initialize countdown on mount and when errors change
+    useEffect(() => {
+        if (errors.email && errors.email.includes('|')) {
+            const [message, seconds] = errors.email.split('|');
+            const remaining = parseInt(seconds);
+            
+            if (remaining > 0) {
+                setIsLocked(true);
+                setCountdown(remaining);
+            }
+        }
+    }, [errors.email]);
+
+    // Countdown timer - runs every second
+    useEffect(() => {
+        if (!isLocked || countdown === null || countdown <= 0) return;
+
+        const timer = setInterval(() => {
+            setCountdown(prev => {
+                if (prev <= 1) {
+                    setIsLocked(false);
+                    return null;
+                }
+                return prev - 1;
+            });
+        }, 1000);
+
+        return () => clearInterval(timer);
+    }, [isLocked, countdown]);
 
     const close = () => {
         setIsOpen(false);
         if (onClose) onClose();
     };
 
+    const getEmailError = () => {
+        if (!errors.email) return null;
+        return errors.email.split('|')[0]; // Get just the message without seconds
+    };
+
     const handleSubmit = (e) => {
-    e.preventDefault();
+        e.preventDefault();
 
-    post(route('login'), {
-        onSuccess: () => {
-            reset('password');
+        if (isLocked) {
+            return; // Don't submit if locked
+        }
 
-            // get auth user
-            const { auth } = page.props;
-            console.log(auth.user?.roles);
-            const isAdmin = auth.user?.roles?.some(role => role.name.toLowerCase() === 'admin');
-            // redirect based on role
-            Inertia.visit(isAdmin ? '/dashboard' : '/');
+        post(route('login'), {
+            onSuccess: () => {
+                reset('password');
 
-            // close modal
-            if (onClose) onClose();
-        },
-    });
-};
+                // get auth user
+                const { auth } = page.props;
+                console.log(auth.user?.roles);
+                const isAdmin = auth.user?.roles?.some(role => role.name.toLowerCase() === 'admin');
+                // redirect based on role
+                Inertia.visit(isAdmin ? '/dashboard' : '/');
+
+                // close modal
+                if (onClose) onClose();
+            },
+        });
+    };
 
 
     if (!isOpen) return null;
@@ -81,7 +122,7 @@ export default function LoginModal({  isOpen: propIsOpen, onClose, onOpenRegiste
 
                     {errors.email && (
                         <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-                            {errors.email}
+                            {getEmailError()} {countdown !== null && countdown > 0 && `(${countdown}s)`}
                         </div>
                     )}
 
@@ -135,10 +176,10 @@ export default function LoginModal({  isOpen: propIsOpen, onClose, onOpenRegiste
 
                         <button
                             type="submit"
-                            disabled={processing}
+                            disabled={processing || isLocked}
                             className="w-full bg-[#bda081] text-white py-3 rounded-lg font-semibold hover:bg-[#ddac78] transition duration-200 disabled:bg-[#bda081]"
                         >
-                            {processing ? 'Logging in...' : 'Log in'}
+                            {isLocked ? `Locked (${countdown}s)` : processing ? 'Logging in...' : 'Log in'}
                         </button>
                     </form>
 

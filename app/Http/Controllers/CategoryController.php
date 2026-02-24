@@ -9,9 +9,6 @@ use Inertia\Response;
 
 class CategoryController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index(Request $request): Response
     {
         $rsDatas = Category::latest()->paginate(10)->appends(request()->query());
@@ -21,9 +18,6 @@ class CategoryController extends Controller
         ]);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
     public function create()
     {
         return Inertia::render('Categories/CreateEdit', [
@@ -31,30 +25,25 @@ class CategoryController extends Controller
         ]);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request, Category $model)
     {
         $model->create($request->validate([
-            'name' => 'required|string|max:255',
+            'name' => ['required', 
+                        'max:255',
+                        'regex:/[a-zA-Z]/',
+                        'unique:categories,name'
+                    ],
             'status' => 'required|boolean',
         ]));
         return redirect()->route('categories.index');
-        // return back()->with('message', 'Data added successfully');
+       
     }
 
-    /**
-     * Display the specified resource.
-     */
     public function show(Category $category, $id)
     {
         //
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
     public function edit(Category $category, $id)
     {
         $rsDatasModel = Category::find($id);
@@ -63,9 +52,6 @@ class CategoryController extends Controller
         ]);
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
     public function update(Request $request, Category $model, $id)
     {
         $request->validate([
@@ -79,20 +65,18 @@ class CategoryController extends Controller
         return redirect()->route('categories.index');
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Category $category , $id)
+    public function destroy(Category $id)
     {
-    // Check if there are any books linked to this category
-    if ($category->books()->exists()) {
-        return back()->withErrors([
-            'delete' => 'Cannot delete category: It is currently used by ' . $category->books()->count() . ' books.'
-        ]);
-    }
+        if ($id->books()->exists()) {
+            return back()->withErrors([
+                'delete' => 'Cannot delete category: It is currently used by ' 
+                    . $id->books()->count() . ' books.'
+            ]);
+        }
 
-    $category->delete();
+        $id->delete();
 
-    return redirect()->route('categories.index')->with('success', 'Category deleted successfully.');
+        return redirect()->route('categories.index')
+            ->with('success', 'Category deleted successfully.');
     }
 }

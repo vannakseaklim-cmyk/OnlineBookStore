@@ -7,8 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
-
-// --- ESSENTIAL MODEL IMPORTS ---
+use App\Services\TelegramService;
 use App\Models\ShoppingCart;
 use App\Models\Order;
 use App\Models\OrderItem;
@@ -22,7 +21,6 @@ class CheckoutController extends Controller
         ->where('customer_id', Auth::id())
         ->where('status', 0)
         ->first();
-
 
     if (!$cart || $cart->items->isEmpty()) {
         return redirect()->route('cart.index')->with('error', 'Your cart is empty.');
@@ -56,7 +54,6 @@ class CheckoutController extends Controller
             $imagePath = $request->file('transaction_image')->store('payments', 'public');
         }
 
-        // Use try-catch inside or around the transaction to handle the "Insufficient stock" message
         try {
             return DB::transaction(function () use ($request, $cart, $total, $imagePath) {
                 $order = Order::create([
@@ -72,7 +69,7 @@ class CheckoutController extends Controller
 
                 foreach ($cart->items as $item) {
                     if ($item->book->stock < $item->quantity) {
-                        // This message will be caught by the 'catch' block below
+                       
                         throw new \Exception("Sorry, '{$item->book->title}' is out of stock.");
                     }
 
@@ -88,10 +85,15 @@ class CheckoutController extends Controller
 
                 $cart->update(['status' => 1]);
 
+                if ($imagePath || $request->payment_method === 'online') {
+                    $telegramService = new TelegramService();
+                    $telegramService->sendTransactionNotification($order->load('items.book', 'customer'), $imagePath);
+                }
+
                 return redirect()->route('customer.orders.index')->with('success', 'Order placed successfully!');
             });
         } catch (\Exception $e) {
-            // This sends the "Insufficient stock" message back as a flash 'error'
+           
             return back()->with('error', $e->getMessage());
         }
     }

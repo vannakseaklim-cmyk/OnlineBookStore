@@ -1,8 +1,9 @@
 import { Head, Link } from '@inertiajs/react';
+import { router } from '@inertiajs/react';
 import moment from 'moment';
 import Navbar from '@/Components/Navbar'; 
 import Footer from '@/Components/FooterGuest';
-import Modal from '@/Components/Modal'; // Ensure this is imported
+import Modal from '@/Components/Modal'; 
 import { useState } from 'react';
 
 export default function Index({ orders, auth }) {
@@ -34,7 +35,7 @@ export default function Index({ orders, auth }) {
                                     }`}>
                                         {order.status}
                                     </span>
-                                    {/* Action: Open Popup */}
+                                    
                                     <button 
                                         onClick={() => setSelectedOrder(order)} 
                                         className="inline-flex items-center justify-center px-4 py-2 min-w-[110px] text-xs font-semibold uppercase rounded-lg bg-[#e5d3bf] text-blue-700 hover:bg-[#ecc395] transition"
@@ -54,11 +55,10 @@ export default function Index({ orders, auth }) {
             </div>
         </div>
 
-        {/* INVOICE MODAL POPUP */}
         <Modal show={!!selectedOrder} onClose={() => setSelectedOrder(null)} maxWidth="2xl">
             {selectedOrder && (
                 <div className="p-0 bg-white rounded-xl overflow-hidden">
-                    {/* Invoice Header */}
+                    
                     <div className="p-6 bg-gray-50 border-b flex justify-between items-center">
                         <div>
                             <h2 className="text-xl font-bold uppercase tracking-tight">Invoice #{selectedOrder.id}</h2>
@@ -67,14 +67,12 @@ export default function Index({ orders, auth }) {
                         <button onClick={() => setSelectedOrder(null)} className="text-gray-400 hover:text-gray-600 text-2xl font-bold">&times;</button>
                     </div>
 
-                    {/* Cancellation Note */}
                     {selectedOrder.status === 'cancelled' && (
                         <div className="mx-6 mt-4 p-3 bg-red-50 border-l-4 border-red-500 text-red-700 text-sm">
                             <strong>Reason:</strong> {selectedOrder.cancel_reason || 'N/A'}
                         </div>
                     )}
 
-                    {/* Book Items List */}
                     <div className="p-6 max-h-[50vh] overflow-y-auto">
                         <h3 className="font-bold mb-4 text-gray-700 uppercase text-xs border-b pb-2">Items Purchased</h3>
                         <div className="space-y-4">
@@ -115,9 +113,26 @@ export default function Index({ orders, auth }) {
                     
                 </div>
             )}
-        </Modal>
 
+            {orders.links && (
+                <div className="mt-6 flex justify-center space-x-2">
+                    {orders.links.map((link, index) => (
+                        <button
+                            key={index}
+                            disabled={!link.url}
+                            className={`px-3 py-1 rounded ${
+                                link.active ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700'
+                            }`}
+                            onClick={() => link.url && router.get(link.url, {}, { preserveState: true })}
+                            dangerouslySetInnerHTML={{ __html: link.label }}
+                        />
+                    ))}
+                </div>
+            )}
+        </Modal>
+            
         <Footer />
+
         </> 
     );
 }

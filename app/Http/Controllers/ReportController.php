@@ -10,7 +10,6 @@ class ReportController extends Controller
 {
     public function index(Request $request)
     {
-        // Filter by date range if provided
         $query = Order::with('customer')->where('status', 'completed');
 
         if ($request->start_date && $request->end_date) {

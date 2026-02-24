@@ -24,7 +24,6 @@ class ShoppingCartController extends Controller
         ]);
     }
 
-    // app/Http/Controllers/Customer/ShoppingCartController.php
 
 public function add(Request $request, $book)
 {
@@ -84,7 +83,6 @@ public function add(Request $request, $book)
 
     $book = $cartItem->book;
 
-        // ❌ BLOCK: quantity exceeds stock
         if ($request->quantity > $book->stock) {
             return back()->with('error', 'Not enough stock available.');
         }

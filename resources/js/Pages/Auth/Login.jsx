@@ -1,5 +1,5 @@
 // Login.jsx
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Head, Link, useForm } from '@inertiajs/react';
 
 export default function Login({ status, canResetPassword }) {
@@ -9,8 +9,46 @@ export default function Login({ status, canResetPassword }) {
         remember: false,
     });
 
+    const [countdown, setCountdown] = useState(null);
+    const [isLocked, setIsLocked] = useState(false);
+
+    useEffect(() => {
+        if (errors.email && errors.email.includes('|')) {
+            const [message, seconds] = errors.email.split('|');
+            const remaining = parseInt(seconds);
+            
+            if (remaining > 0) {
+                setIsLocked(true);
+                setCountdown(remaining);
+            }
+        }
+    }, [errors.email]);
+
+    useEffect(() => {
+        if (countdown === null || countdown <= 0) return;
+
+        const timer = setTimeout(() => {
+            setCountdown(countdown - 1);
+        }, 1000);
+
+        return () => clearTimeout(timer);
+    }, [countdown]);
+
+    useEffect(() => {
+        if (countdown === 0) {
+            setIsLocked(false);
+            setCountdown(null);
+        }
+    }, [countdown]);
+
+    const getEmailError = () => {
+        if (!errors.email) return null;
+        return errors.email.split('|')[0]; // Get just the message without seconds
+    };
+
     const handleSubmit = (e) => {
         e.preventDefault();
+        if (isLocked) return;
         post(route('login'), {
             onFinish: () => reset('password'),
         });
@@ -39,7 +77,15 @@ export default function Login({ status, canResetPassword }) {
 
                     {errors.email && (
                         <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-                            {errors.email}
+                            <p>{getEmailError()}</p>
+                            {countdown !== null && countdown > 0 && (
+                                <div className="mt-3 text-center">
+                                    <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-red-200 border-4 border-red-400">
+                                        <span className="text-2xl font-bold text-red-700">{countdown}</span>
+                                    </div>
+                                    <p className="mt-2 text-sm">Please wait to try again</p>
+                                </div>
+                            )}
                         </div>
                     )}
                     {errors.password && (
@@ -92,10 +138,10 @@ export default function Login({ status, canResetPassword }) {
 
                         <button
                             type="submit"
-                            disabled={processing}
-                            className="w-full bg-[#bda081] text-white py-3 rounded-lg font-semibold hover:bg-[#ddac78] transition duration-200 disabled:bg-[#bda081]"
+                            disabled={processing || isLocked}
+                            className="w-full bg-[#bda081] text-white py-3 rounded-lg font-semibold hover:bg-[#ddac78] transition duration-200 disabled:bg-gray-400 disabled:cursor-not-allowed"
                         >
-                            {processing ? 'Logging in...' : 'Log in'}
+                            {isLocked ? `Locked (${countdown}s)` : processing ? 'Logging in...' : 'Log in'}
                         </button>
                     </form>
 

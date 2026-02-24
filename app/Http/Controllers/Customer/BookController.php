@@ -14,7 +14,7 @@ class BookController extends Controller
     {
         $books = Book::with('category')
             ->whereHas('category', function ($q) {
-                $q->where('status', 1); // only active categories
+                $q->where('status', 1); 
             })
             ->when($request->search, function ($q, $search) {
                 $q->where(function ($qq) use ($search) {
