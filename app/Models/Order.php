@@ -29,4 +29,14 @@ class Order extends Model
         return $this->belongsTo(User::class, 'customer_id');
 
     }
+
+    public function getSubtotalAttribute()
+    {
+        return $this->items->sum(fn($i) => ($i->book->discounted_price ?? $i->book->price) * $i->quantity);
+    }
+
+    public function getTotalAttribute()
+    {
+        return $this->subtotal + ($this->shipping_fee ?? 0);
+    }
 }

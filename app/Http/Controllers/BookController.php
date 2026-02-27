@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 use App\Models\Book;
+use App\Models\Discount;
 use App\Models\Category;
+use App\Models\Delivery;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -10,9 +12,8 @@ class BookController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Book::with('category');
+        $query = Book::with(['category','discount']);
 
-    // 1. Search by title or author
         $query->when($request->search, function ($q, $search) {
        
         $q->where(function ($subQuery) use ($search) {
@@ -21,12 +22,10 @@ class BookController extends Controller
         });
     });
 
-    // 2. Category Filter
+    
         $query->when($request->category_id, function ($q, $categoryId) {
         $q->where('category_id', $categoryId);
     });
-
-    // 3. Price Range Filters
         $query->when($request->min_price, function ($q, $min) {
         $q->where('price', '>=', $min);
     });
@@ -49,9 +48,11 @@ class BookController extends Controller
     public function create()
     {
         $categories = Category::where('status', 1)->get();
+        $discounts = Discount::where('active', true)->get();
         return Inertia::render('Books/CreateEdit', [
             'datas' => null,
-            'categories' => $categories
+            'categories' => $categories,
+            'discounts' => $discounts
         ]);
     }
 
@@ -59,15 +60,15 @@ class BookController extends Controller
     {
     $request->validate([
         'category_id' => 'required|exists:categories,id',
-        'title'       => 'required|string|max:255',
-        'pages'       => 'required|string|max:255',
+        'title'       => 'required|string|max:255|regex:/^[a-zA-Z\s]+$/',
+        'pages'       => 'required|integer|min:1|max:255',
         'author'      => 'required|string|max:255',
         'price'       => 'required|numeric|min:0',
+        'discount_id' => 'nullable|exists:discounts,id',
         'stock'       => 'required|integer|min:0',
         'cover_image' => 'nullable|image|max:2048', 
     ]);
 
-    // Handle File Upload if exists
     $data = $request->all();
     if ($request->hasFile('cover_image')) {
         $data['cover_image'] = $request->file('cover_image')->store('covers', 'public');
@@ -80,6 +81,7 @@ class BookController extends Controller
 
     public function show(Book $book)
     {
+        $book->load(['category','discount']);
         return Inertia::render('Books/Show', [
             'book' => $book
         ]);
@@ -87,10 +89,22 @@ class BookController extends Controller
 
     public function edit(Book $book)
     {
+        // load the current discount relationship so it can be referenced by the form
+        $book->load('discount');
+
+        // include all active discounts plus the one already assigned to this book
+        $discounts = Discount::where(function ($q) use ($book) {
+            $q->where('active', true);
+            if ($book->discount_id) {
+                $q->orWhere('id', $book->discount_id);
+            }
+        })->get();
+
+        $categories = Category::where('status', 1)->get();
         return Inertia::render('Books/CreateEdit', [
-           
             'datas' => $book,
-            'categories' => Category::all(),
+            'categories' => $categories,
+            'discounts' => $discounts
         ]);
     }
 
@@ -98,11 +112,12 @@ class BookController extends Controller
     {
     $request->validate([
         'category_id' => 'required|exists:categories,id',
-        'title'       => 'required|string|max:255',
-        'pages'       => 'required|string|max:255',
+        'title'       => 'required|string|max:255|regex:/[a-zA-Z]/',
+        'pages'       => 'required|integer|min:1|max:255',
         'author'      => 'required|string|max:255',
         'description' => 'nullable|string',
         'price'       => 'required|numeric|min:0',
+        'discount_id' => 'nullable|exists:discounts,id',
         'stock'       => 'required|integer|min:0',
         'cover_image' => 'nullable|image|max:2048',
     ]);
@@ -120,7 +135,7 @@ class BookController extends Controller
 
     public function updateStock(Request $request, Book $book)
     {
-    // Optionally, validate stock is non-negative
+   
     $request->validate([
         'stock' => 'required|integer|min:0',
     ]);
@@ -137,4 +152,6 @@ class BookController extends Controller
         $book->delete();
         return redirect()->route('books.index');
     }
+
+    
 }

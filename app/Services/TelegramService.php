@@ -13,7 +13,7 @@ class TelegramService
 
     public function __construct()
     {
-        // Load from config/services.php
+        
         $this->botToken = config('services.telegram_dev.bot_token');
         $this->chatId = config('services.telegram_dev.chat_id');
     }
@@ -21,7 +21,7 @@ class TelegramService
     public function sendTransactionNotification($order, $imagePath = null)
     {
         try {
-            // Verify credentials are set
+         
             if (!$this->botToken || !$this->chatId) {
                 Log::error('Telegram credentials not configured');
                 return false;
@@ -29,7 +29,6 @@ class TelegramService
 
             $message = $this->formatTransactionMessage($order, $imagePath);
 
-            // First, send the message
             $messageUrl = "{$this->apiUrl}{$this->botToken}/sendMessage";
             Log::info('Sending message to Telegram', ['url' => $messageUrl, 'chat_id' => $this->chatId]);
 
@@ -44,7 +43,6 @@ class TelegramService
 
             Log::info('Message response: ' . $response->status(), ['body' => $response->body()]);
 
-            // Then, send the image if provided
             if ($imagePath) {
                 $fullPath = storage_path('app/public/' . $imagePath);
                 if (file_exists($fullPath)) {

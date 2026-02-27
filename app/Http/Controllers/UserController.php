@@ -37,11 +37,11 @@ class UserController extends Controller
                 'string',
                 'email',
                 'max:255',
-                Rule::unique('users', 'email'), // use table name and column explicitly
+                Rule::unique('users', 'email'), 
             ],
             'password' => ['required', 'string', 'min:8'],
             'roles' => ['nullable'],
-            'roles.*' => ['string', 'exists:roles,name'], // validate each role exists if provided
+            'roles.*' => ['string', 'exists:roles,name'], 
         ])->validate();
 
         $user = User::create([

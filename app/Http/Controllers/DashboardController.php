@@ -13,13 +13,13 @@ class DashboardController extends Controller
 {
     public function index()
 {
-    // Real SQL Query for Chart: Sum totals grouped by day
+    
     $salesData = collect(range(6, 0))->map(function ($days) {
         $date = now()->subDays($days);
         return [
             'date' => $date->format('D'), 
             'amount' => \App\Models\Order::whereDate('created_at', $date)
-                        ->where('status', 'completed') // Only count successful sales
+                        ->where('status', 'completed') 
                         ->sum('order_total'),
         ];
     });

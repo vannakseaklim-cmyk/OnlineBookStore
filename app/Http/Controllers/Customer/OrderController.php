@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Customer;
 use App\Http\Controllers\Controller;
 use App\Models\Order;
 use Illuminate\Support\Facades\Auth;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Inertia\Inertia;
 
 class OrderController extends Controller
@@ -31,5 +32,17 @@ class OrderController extends Controller
         return Inertia::render('Customer/Order/Show', [
             'order' => $order->load(['items.book'])
         ]);
+    }
+
+    public function invoice(Order $order)
+    {
+        $order->load('items.book'); 
+        $order->shipping_fee = $order->shipping_fee ?? 0; 
+
+        $pdf = Pdf::loadView('pdf.invoice', [
+            'order' => $order
+        ]);
+
+        return $pdf->download("invoice-{$order->id}.pdf");
     }
 }

@@ -23,7 +23,6 @@ public function index()
                 'title' => $book->title,
                 'author' => $book->author,
                 'price' => $book->price,
-                // Make sure this matches 'image_url' if that's what Welcome.jsx uses
                 'image_url' => $book->cover_image ? asset('storage/' . $book->cover_image) : '/images/no-book.png',
                 'category_name' => $book->category?->name ?? 'General',
                 'is_best_seller' => $book->is_best_seller ?? false,
@@ -31,7 +30,7 @@ public function index()
         });
 
     return Inertia::render('Welcome', [
-        'bestSellers' => $books, // Changed from 'books' to 'bestSellers'
+        'bestSellers' => $books, 
     ]);
 }
 }

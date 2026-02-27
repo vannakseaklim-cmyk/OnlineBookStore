@@ -1,223 +1,246 @@
-import { Link, usePage } from '@inertiajs/react';
-import $ from 'jquery';
-import 'admin-lte/dist/css/adminlte.min.css'; // Ensure styles are loaded
-import 'admin-lte/dist/js/adminlte.min.js';
-import { useEffect } from 'react';
+import { Link, usePage } from '@inertiajs/react'
+import $ from 'jquery'
+import 'admin-lte/dist/css/adminlte.min.css'
+import 'admin-lte/dist/js/adminlte.min.js'
+import { useEffect } from 'react'
 
-export default function MenuSideBar({ }) {
-    const { url, auth } = usePage().props;
-    const can = auth?.can ?? {};
-    useEffect(() => {
-        // Ensure dropdowns, tooltips, and modals work
-        $('[data-toggle="dropdown"]').dropdown();
-    }, []);
+export default function MenuSideBar() {
+    const { auth } = usePage().props
+    const can = auth?.can ?? {}
 
     useEffect(() => {
-        // Initialize AdminLTE sidebar treeview
-        $('[data-widget="treeview"]').each(function () {
-            $(this).Treeview('init');
-        });
-    }, []);
+        $('[data-widget="treeview"]').Treeview('init')
+    }, [])
 
     return (
-        <>
-            {/* Sidebar */}
-            <aside className="main-sidebar sidebar-dark-primary elevation-4">
-                <Link href="/" className="brand-link">
-                    <span className="brand-text font-weight-light">ADMIN</span>
-                </Link>
-                <div className="sidebar">
-                    <div className="user-panel mt-3 pb-3 mb-3 d-flex">
-                        <div className="image">
-                            <img src={'/images/avatar.png'} className="img-circle elevation-2" alt="User Image" />
-                        </div>
-                        <div className="info">
-                            <Link href="#" className="d-block"><span> {auth?.user?.name} </span></Link>
-                        </div>
+        <aside className="main-sidebar sidebar-dark-primary elevation-4">
+            
+            {/* Brand */}
+            <Link href="/" className="brand-link text-center">
+                <span className="brand-text font-weight-light">ADMIN</span>
+            </Link>
+
+            <div className="sidebar">
+
+                {/* User Panel */}
+                <div className="user-panel mt-3 pb-3 mb-3 d-flex">
+                    <div className="image">
+                        <img
+                            src="/images/avatar.png"
+                            className="img-circle elevation-2"
+                            alt="User"
+                        />
                     </div>
-
-                    <div className="form-inline">
-                        <div className="input-group" data-widget="sidebar-search">
-                            <input className="form-control form-control-sidebar" type="search" placeholder="Search" aria-label="Search" />
-                            <div className="input-group-append">
-                                <button className="btn btn-sidebar">
-                                    <i className="fas fa-search fa-fw"></i>
-                                </button>
-                            </div>
-                        </div>
+                    <div className="info">
+                        <Link href="#" className="d-block">
+                            {auth?.user?.name}
+                        </Link>
                     </div>
-
-                    <nav className="mt-2">
-                        <ul className="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
-                            <li className="nav-item">
-                                <Link href={route('dashboard')} className={`nav-link ${route().current('dashboard') && 'active'}`}>
-                                    <i className="nav-icon fas fa-tachometer-alt"></i>
-                                    <p>Dashboard</p>
-                                </Link>
-                            </li>
-                            {/* <li className="nav-item">
-                                <Link href="#" className="nav-link">
-                                    <i className="nav-icon fas fa-th"></i>
-                                    <p>
-                                        Widgets
-                                        <span className="right badge badge-danger">New</span>
-                                    </p>
-                                </Link>
-                            </li> */}
-                            {can['category-list'] && (
-                                <li className="nav-header">SETTING</li>
-                            )}
-                            {/* {can['category-list'] && (
-                                <>
-                                
-                                <li className={`nav-item ${(route().current('categories.index') || route().current('categories.create')) && 'menu-is-opening menu-open'}`}>
-                                    <a href="#" className={`nav-link ${(route().current('categories.index') || route().current('categories.create')) && 'active'}`}>
-                                        <i className="nav-icon far fa-plus-square"></i>
-                                        <p> CATEGORY </p>                                           
-                                    </a>
-                                    <ul className="nav nav-treeview">
-                                        <li className="nav-item">                                          
-                                            <Link href={route('categories.index')} className={`nav-link ${route().current('categories.index') && 'active'}`}>
-                                                <i className="fa-solid fa-list-ul nav-icon text-warning"></i>
-                                                <p>CATEGORY</p>
-                                            </Link>
-                                        </li>
-                                    </ul>
-                                </li>
-                                </>
-                            )} */}
-
-                            <li className="nav-item px-2 mb-1"> {/* Added padding and margin for better alignment */}
-                                <Link
-                                    href={route('categories.index')}
-                                    className={`flex items-center space-x-2 px-3 py-2 rounded-md transition duration-200 ${
-                                        route().current('categories.index')
-                                            ? 'bg-blue-600 text-white active'
-                                            : 'text-gray-300 hover:bg-gray-800'
-                                    }`}
-                                >
-                                    {/* Reduced icon size to text-base and margin */}
-                                    <i className="fa-solid fa-table-cells text-base"></i>
-                                    
-                                    {/* Reduced font size to text-sm for a cleaner sidebar look */}
-                                    <span className="text-sm font-medium">Category</span>
-                                </Link>
-                            </li>
-
-                            <li className="nav-item px-2 mb-1"> {/* Added padding and margin for better alignment */}
-                                <Link
-                                    href={route('books.index')}
-                                    className={`flex items-center space-x-2 px-3 py-2 rounded-md transition duration-200 ${
-                                        route().current('books.index')
-                                            ? 'bg-blue-600 text-white active'
-                                            : 'text-gray-300 hover:bg-gray-800'
-                                    }`}
-                                >
-                                    {/* Reduced icon size to text-base and margin */}
-                                    <i className="fas fa-book text-base"></i>
-                                    
-                                    {/* Reduced font size to text-sm for a cleaner sidebar look */}
-                                    <span className="text-sm font-medium">Book</span>
-                                </Link>
-                            </li>
-
-                            <li className="nav-item px-2 mb-1"> {/* Added padding and margin for better alignment */}
-                                <Link
-                                    href={route('orders.index')}
-                                    className={`flex items-center space-x-2 px-3 py-2 rounded-md transition duration-200 ${
-                                        route().current('orders.index')
-                                            ? 'bg-blue-600 text-white active'
-                                            : 'text-gray-300 hover:bg-gray-800'
-                                    }`}
-                                >
-                                    {/* Reduced icon size to text-base and margin */}
-                                    <i className="fa-solid fa-cart-shopping text-base"></i>
-                                    
-                                    {/* Reduced font size to text-sm for a cleaner sidebar look */}
-                                    <span className="text-sm font-medium">Order</span>
-                                </Link>
-                            </li>
-
-                            <li className="nav-item px-2 mb-1"> {/* Added padding and margin for better alignment */}
-                                <Link
-                                    href={route('reports.index')}
-                                    className={`flex items-center space-x-2 px-3 py-2 rounded-md transition duration-200 ${
-                                        route().current('reports.index')
-                                            ? 'bg-blue-600 text-white active'
-                                            : 'text-gray-300 hover:bg-gray-800'
-                                    }`}
-                                >
-                                    {/* Reduced icon size to text-base and margin */}
-                                    <i className="fa-solid fa-chart-line text-base"></i>
-                                    
-                                    {/* Reduced font size to text-sm for a cleaner sidebar look */}
-                                    <span className="text-sm font-medium">Report</span>
-                                </Link>
-                            </li>
-
-                            {can['role-list' || 'user-list'] && (
-                                <li className="nav-header">AUTHENTICATION</li>
-                            )}
-                            {can['role-list'] && (
-                                <>
-                                <li className={`nav-item ${(route().current('roles.index') || route().current('roles.create')) && 'menu-is-opening menu-open'}`}>
-                                    <a href="#" className={`nav-link ${(route().current('roles.index') || route().current('roles.create')) && 'active'}`}>
-                                        <i className="nav-icon far fa-plus-square"></i>
-                                        <p> ROLE
-                                            <i className="fas fa-angle-left right"></i>
-                                        </p>
-                                    </a>
-                                    <ul className="nav nav-treeview">
-                                        <li className="nav-item">
-                                            <Link href={route('roles.index')} className={`nav-link ${route().current('roles.index') && 'active'}`}>
-                                                <i className="fa-solid fa-list-ul nav-icon text-warning"></i>
-                                                <p>LIST</p>
-                                            </Link>
-                                        </li>
-                                        {can['role-create'] && (
-                                            <li className="nav-item">
-                                                <Link href={route('roles.create')} className={`nav-link ${route().current('roles.create') && 'active'}`}>
-                                                    <i className="fa-regular fa-square-plus nav-icon text-info"></i>
-                                                    <p>CREATE</p>
-                                                </Link>
-                                            </li>
-                                        )}
-                                    </ul>
-                                </li>
-                                </>
-                            )}
-                            {can['user-list'] && (
-                                <>
-                                <li className={`nav-item ${(route().current('users.index') || route().current('users.create')) && 'menu-is-opening menu-open'}`}>
-                                    <a href="#" className={`nav-link ${(route().current('users.index') || route().current('users.create')) && 'active'}`}>
-                                        <i className="nav-icon far fa-plus-square"></i>
-                                        <p> USER
-                                            <i className="fas fa-angle-left right"></i>
-                                        </p>
-                                    </a>
-                                    <ul className="nav nav-treeview">
-                                        <li className="nav-item">
-                                            <Link href={route('users.index')} className={`nav-link ${route().current('users.index') && 'active'}`}>
-                                                <i className="fa-solid fa-list-ul nav-icon text-warning"></i>
-                                                <p>LIST</p>
-                                            </Link>
-                                        </li>
-                                        {can['user-create'] && (
-                                            <li className="nav-item">
-                                                <Link href={route('users.create')} className={`nav-link ${route().current('users.create') && 'active'}`}>
-                                                    <i className="fa-regular fa-square-plus nav-icon text-info"></i>
-                                                    <p>CREATE</p>
-                                                </Link>
-                                            </li>
-                                        )}
-                                    </ul>
-                                </li>
-                                </>
-                            )}
-                        </ul>
-                    </nav>
                 </div>
-            </aside>
-        </>
-    );
+
+                {/* Sidebar Menu */}
+                <nav className="mt-2">
+                    <ul
+                        className="nav nav-pills nav-sidebar flex-column"
+                        data-widget="treeview"
+                        data-accordion="true"
+                    >
+
+                        {/* Dashboard */}
+                        <li className="nav-item">
+                            <Link
+                                href={route('dashboard')}
+                                className={`nav-link ${route().current('dashboard') ? 'active' : ''}`}
+                            >
+                                <i className="nav-icon fas fa-tachometer-alt"></i>
+                                <p>Dashboard</p>
+                            </Link>
+                        </li>
+
+                        {/* Category */}
+                        <li className="nav-item">
+                            <Link
+                                href={route('categories.index')}
+                                className={`nav-link ${route().current('categories.*') ? 'active' : ''}`}
+                            >
+                                <i className="nav-icon fa-solid fa-table-cells"></i>
+                                <p>Category</p>
+                            </Link>
+                        </li>
+
+                        {/* Book */}
+                        <li className="nav-item">
+                            <Link
+                                href={route('books.index')}
+                                className={`nav-link ${route().current('books.*') ? 'active' : ''}`}
+                            >
+                                <i className="nav-icon fas fa-book"></i>
+                                <p>Book</p>
+                            </Link>
+                        </li>
+
+                        {/* Order */}
+                        <li className="nav-item">
+                            <Link
+                                href={route('orders.index')}
+                                className={`nav-link ${route().current('orders.*') ? 'active' : ''}`}
+                            >
+                                <i className="nav-icon fa-solid fa-cart-shopping"></i>
+                                <p>Order</p>
+                            </Link>
+                        </li>
+
+                        {/* Report */}
+                        <li className="nav-item">
+                            <Link
+                                href={route('reports.index')}
+                                className={`nav-link ${route().current('reports.*') ? 'active' : ''}`}
+                            >
+                                <i className="nav-icon fa-solid fa-chart-line"></i>
+                                <p>Report</p>
+                            </Link>
+                        </li>
+
+                        {/* SETTINGS (TREEVIEW) */}
+                        {can['category-list'] && (
+                            <li className={`nav-item ${route().current('coupons.*') || route().current('deliveries.*') ? 'menu-open' : ''}`}>
+                                <a
+                                    href="#"
+                                    className={`nav-link ${route().current('coupons.*') || route().current('deliveries.*') ? 'active' : ''}`}
+                                >
+                                    <i className="nav-icon fa-solid fa-sliders"></i>
+                                    <p>
+                                        Settings
+                                        <i className="right fas fa-angle-left"></i>
+                                    </p>
+                                </a>
+
+                                <ul className="nav nav-treeview">
+                                    <li className="nav-item">
+                                        <Link
+                                            href={route('coupons.index')}
+                                            className={`nav-link ${route().current('coupons.*') ? 'active' : ''}`}
+                                        >
+                                            <i className="nav-icon fa-solid fa-tag"></i>
+                                            <p>Coupon</p>
+                                        </Link>
+                                    </li>
+
+                                    <li className="nav-item">
+                                        <Link
+                                            href={route('discounts.index')}
+                                            className={`nav-link ${route().current('discounts.*') ? 'active' : ''}`}
+                                        >
+                                            <i className="nav-icon fa-solid fa-tag"></i>
+                                            <p>Discount</p>
+                                        </Link>
+                                    </li>
+
+                                    <li className="nav-item">
+                                        <Link
+                                            href={route('deliveries.index')}
+                                            className={`nav-link ${route().current('deliveries.*') ? 'active' : ''}`}
+                                        >
+                                            <i className="nav-icon fa-solid fa-truck"></i>
+                                            <p>Delivery</p>
+                                        </Link>
+                                    </li>
+
+                                    <li className="nav-item">
+                                        <Link
+                                            href={route('qrcodes.index')}
+                                            className={`nav-link ${route().current('qrcodes.*') ? 'active' : ''}`}
+                                        >
+                                            <i className="nav-icon fa-solid fa-qrcode"></i>
+                                            <p>QR Code</p>
+                                        </Link>
+                                    </li>
+                                </ul>
+                            </li>
+                        )}
+
+                        {/* AUTH HEADER */}
+                        {(can['role-list'] || can['user-list']) && (
+                            <li className="nav-header">AUTHENTICATION</li>
+                        )}
+
+                        {/* ROLE */}
+                        {can['role-list'] && (
+                            <li className={`nav-item ${route().current('roles.*') ? 'menu-open' : ''}`}>
+                                <a href="#" className={`nav-link ${route().current('roles.*') ? 'active' : ''}`}>
+                                    <i className="nav-icon far fa-plus-square"></i>
+                                    <p>
+                                        Role
+                                        <i className="right fas fa-angle-left"></i>
+                                    </p>
+                                </a>
+
+                                <ul className="nav nav-treeview">
+                                    <li className="nav-item">
+                                        <Link
+                                            href={route('roles.index')}
+                                            className={`nav-link ${route().current('roles.index') ? 'active' : ''}`}
+                                        >
+                                            <i className="nav-icon fa-solid fa-list-ul text-warning"></i>
+                                            <p>List</p>
+                                        </Link>
+                                    </li>
+
+                                    {can['role-create'] && (
+                                        <li className="nav-item">
+                                            <Link
+                                                href={route('roles.create')}
+                                                className={`nav-link ${route().current('roles.create') ? 'active' : ''}`}
+                                            >
+                                                <i className="nav-icon fa-regular fa-square-plus text-info"></i>
+                                                <p>Create</p>
+                                            </Link>
+                                        </li>
+                                    )}
+                                </ul>
+                            </li>
+                        )}
+
+                        {/* USER */}
+                        {can['user-list'] && (
+                            <li className={`nav-item ${route().current('users.*') ? 'menu-open' : ''}`}>
+                                <a href="#" className={`nav-link ${route().current('users.*') ? 'active' : ''}`}>
+                                    <i className="nav-icon far fa-plus-square"></i>
+                                    <p>
+                                        User
+                                        <i className="right fas fa-angle-left"></i>
+                                    </p>
+                                </a>
+
+                                <ul className="nav nav-treeview">
+                                    <li className="nav-item">
+                                        <Link
+                                            href={route('users.index')}
+                                            className={`nav-link ${route().current('users.index') ? 'active' : ''}`}
+                                        >
+                                            <i className="nav-icon fa-solid fa-list-ul text-warning"></i>
+                                            <p>List</p>
+                                        </Link>
+                                    </li>
+
+                                    {can['user-create'] && (
+                                        <li className="nav-item">
+                                            <Link
+                                                href={route('users.create')}
+                                                className={`nav-link ${route().current('users.create') ? 'active' : ''}`}
+                                            >
+                                                <i className="nav-icon fa-regular fa-square-plus text-info"></i>
+                                                <p>Create</p>
+                                            </Link>
+                                        </li>
+                                    )}
+                                </ul>
+                            </li>
+                        )}
+
+                    </ul>
+                </nav>
+            </div>
+        </aside>
+    )
 }

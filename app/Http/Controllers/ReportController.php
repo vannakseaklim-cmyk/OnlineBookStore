@@ -25,7 +25,7 @@ class ReportController extends Controller
 
     public function downloadPdf(Request $request)
     {
-        // FIX: Added .with('customer') to fetch names
+        
         $orders = Order::with('customer') 
             ->where('status', 'completed')
             ->when($request->start_date && $request->end_date, function($q) use ($request){

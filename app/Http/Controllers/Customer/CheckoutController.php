@@ -9,6 +9,8 @@ use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use App\Services\TelegramService;
 use App\Models\ShoppingCart;
+use App\Models\Delivery;
+use App\Models\QRCode;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Book;
@@ -26,8 +28,13 @@ class CheckoutController extends Controller
         return redirect()->route('cart.index')->with('error', 'Your cart is empty.');
     }
 
+    $deliveries = Delivery::all();
+    $qrcodes = QRCode::where('active', true)->get();
+
     return Inertia::render('Customer/Checkout', [
-        'cart' => $cart
+        'cart' => $cart,
+        'deliveries' => $deliveries,
+        'qrcodes' => $qrcodes
     ]);
     }
 
@@ -36,8 +43,9 @@ class CheckoutController extends Controller
         $request->validate([
             'phone_number'      => 'required|string|max:20',
             'shipping_address'  => 'required|string|max:500',
-            'payment_method'    => 'required|in:online,delivery',
-            'transaction_image' => $request->payment_method === 'online' 
+            'delivery_id'       => 'required|exists:deliveries,id',
+            'payment_method'    => 'required|in:qr,delivery',
+            'transaction_image' => $request->payment_method === 'qr' 
                 ? 'required|image|mimes:jpeg,png,jpg|max:2048' 
                 : 'nullable',
         ]);

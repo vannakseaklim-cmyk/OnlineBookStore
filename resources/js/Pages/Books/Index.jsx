@@ -87,9 +87,12 @@ export default function BooksPage({ bookData }) {
                                             <th>#ID</th>
                                             <th>Cover</th>
                                             <th>Title</th>
+                                            <th>Pages</th>
                                             <th>Author</th>
                                             <th>Category</th>
                                             <th>Price</th>
+                                            <th>Discount</th>
+                                            <th>Final Price</th>
                                             <th>Stock</th>
                                             <th>Status</th>
                                             <th>Created At</th>
@@ -101,8 +104,6 @@ export default function BooksPage({ bookData }) {
                                         booksList.map((book, index) => (
                                             <tr key={book.id}>
                                                 <td>{book.id}</td>
-
-                                                {/* Cover Image */}
                                                 <td>
                                                     {book.cover_image ? (
                                                         <img
@@ -113,27 +114,21 @@ export default function BooksPage({ bookData }) {
                                                     ) : (
                                                         <span className="text-muted small">No Image</span>
                                                     )}
-                                                </td>
-
-                                                {/* Title */}
+                                                </td>                                              
                                                 <td>{book.title}</td>
-
-                                                {/* Title */}
                                                 <td>{book.pages}</td>
-
-                                                {/* Author */}
                                                 <td>{book.author || '-'}</td>
-
-                                                {/* Category (AUTO from relationship) */}
                                                 <td>{book.category?.name || '-'}</td>
-
-                                                {/* Price */}
                                                 <td>${Number(book.price).toLocaleString()}</td>
-
-                                                {/* Stock */}
+                                                <td>
+                                                    {book.discount ? `${book.discount.discount_percent}%` : '-'}
+                                                </td>
+                                                <td>
+                                                    {book.discounted_price
+                                                        ? `$${Number(book.discounted_price).toLocaleString()}`
+                                                        : '-' }
+                                                </td>
                                                 <td>{book.stock}</td>
-
-                                                {/* Status */}
                                                 <td>
                                                     {book.stock > 0 ? (
                                                         <span className="badge badge-success">In Stock</span>
@@ -141,11 +136,7 @@ export default function BooksPage({ bookData }) {
                                                         <span className="badge badge-danger">Out of Stock</span>
                                                     )}
                                                 </td>
-
-                                                {/* Created At */}
                                                 <td>{moment(book.created_at).format('DD/MM/YYYY')}</td>
-
-                                                {/* Action */}
                                                 <td className="text-center">
                                                     <Link
                                                         href={route('books.edit', book.id)}

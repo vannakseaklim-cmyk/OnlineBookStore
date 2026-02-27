@@ -8,13 +8,11 @@ use Illuminate\Support\Facades\Log;
 
 class WebhookController extends Controller
 {
-    /**
-     * Handle GitHub push webhook
-     */
+   
     public function handleGitHubPush(Request $request)
     {
         try {
-            // Verify GitHub signature
+            
             $signature = $request->header('X-Hub-Signature-256');
             if (!$this->verifyGitHubSignature($request, $signature)) {
                 return response()->json(['error' => 'Invalid signature'], 403);
@@ -22,22 +20,18 @@ class WebhookController extends Controller
 
             $payload = $request->json()->all();
 
-            // Only process push events
             if ($request->header('X-GitHub-Event') !== 'push') {
                 return response()->json(['status' => 'ignored']);
             }
 
-            // Extract push details
             $branch = basename($payload['ref'] ?? '');
             $repository = $payload['repository']['full_name'] ?? 'Unknown';
             $pusher = $payload['pusher']['name'] ?? 'Unknown';
             $commits = $payload['commits'] ?? [];
             $commitCount = count($commits);
 
-            // Build message
             $message = $this->buildPushMessage($repository, $branch, $pusher, $commits, $commitCount);
 
-            // Send to Telegram
             $telegramService = new TelegramService();
             $result = $telegramService->sendPushNotification($message);
 
@@ -56,9 +50,6 @@ class WebhookController extends Controller
         }
     }
 
-    /**
-     * Build formatted push notification message
-     */
     private function buildPushMessage($repository, $branch, $pusher, $commits, $commitCount)
     {
         $message = "<b>🚀 CODE PUSH NOTIFICATION</b>\n\n";
@@ -71,7 +62,7 @@ class WebhookController extends Controller
         foreach ($commits as $commit) {
             $hash = substr($commit['id'], 0, 7);
             $commitMessage = $commit['message'] ?? 'No message';
-            // Get first line only
+            
             $commitMessage = explode("\n", $commitMessage)[0];
             $message .= "• <code>{$hash}</code> {$commitMessage}\n";
         }
@@ -79,9 +70,7 @@ class WebhookController extends Controller
         return $message;
     }
 
-    /**
-     * Verify GitHub webhook signature
-     */
+  
     private function verifyGitHubSignature($request, $signature)
     {
         $secret = env('GITHUB_WEBHOOK_SECRET');

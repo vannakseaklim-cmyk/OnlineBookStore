@@ -4,6 +4,8 @@ namespace App\Http\Middleware;
 
 use Illuminate\Http\Request;
 use Inertia\Middleware;
+use App\Models\ShoppingCart;
+use App\Models\Order;
 
 class HandleInertiaRequests extends Middleware
 {
@@ -31,6 +33,7 @@ class HandleInertiaRequests extends Middleware
     {
         // Load user with roles to make admin checks easy in React
         $user = $request->user()?->load('roles');
+        $activeCart = $user ? ShoppingCart::where('customer_id', $user->id)->where('status', 'active')->first() : null;
 
         return array_merge(parent::share($request), [
             'auth' => [
@@ -42,12 +45,7 @@ class HandleInertiaRequests extends Middleware
                         ->mapWithKeys(fn($permission) => [$permission->name => $user->can($permission->name)])
                         ->all()
                     : [],
-                'cartCount' => $request->user() 
-                ? \App\Models\ShoppingCartItem::whereHas('cart', function($query) use ($request) {
-                    $query->where('customer_id', $request->user()->id)->where('status', 0);
-                })->sum('quantity') 
-                : 0,
-            
+                'cartCount' => $activeCart ? $activeCart->items->count() : 0,
                 'pendingOrdersCount' => $user ? \App\Models\Order::where('status', 'pending')->count() : 0,
             ],
             'flash' => [

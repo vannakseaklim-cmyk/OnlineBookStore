@@ -59,7 +59,7 @@ class LoginRequest extends FormRequest
      */
     public function ensureIsNotRateLimited(): void
     {
-        if (! RateLimiter::tooManyAttempts($this->throttleKey(), 3)) { // 3 attempts max
+        if (! RateLimiter::tooManyAttempts($this->throttleKey(), 3)) { 
             return;
         }
 
@@ -71,7 +71,7 @@ class LoginRequest extends FormRequest
             'email' => trans('auth.throttle', [
                 'seconds' => $seconds,
                 'minutes' => ceil($seconds / 60),
-            ]) . '|' . $seconds, // Add remaining seconds for frontend countdown
+            ]) . '|' . $seconds, 
         ]);
     }
 

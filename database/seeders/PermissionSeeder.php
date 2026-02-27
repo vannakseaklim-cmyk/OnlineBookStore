@@ -34,6 +34,12 @@ class PermissionSeeder extends Seeder
             'book-create',
             'book-edit',
             'book-delete',
+
+            'coupon-list',
+            'coupon-create',
+            'coupon-edit',
+            'coupon-delete',
+        
         ];
 
         foreach ($permissions as $permission) {

@@ -5,7 +5,7 @@ import AdminLayout from '@/Layouts/AdminLayout';
 import { Head, useForm, Link } from '@inertiajs/react';
 import { useState } from 'react';
 
-export default function BooksCreateEdit({ datas, categories }) {
+export default function BooksCreateEdit({ datas, categories, discounts = [] }) {
     const [preview, setPreview] = useState(null);
     const [image, setImage] = useState(null);
 
@@ -17,6 +17,7 @@ export default function BooksCreateEdit({ datas, categories }) {
             description: datas?.description || '',
             category_id: datas?.category_id || '',
             price: datas?.price || '',
+            discount_id: datas?.discount_id || '',
             stock: datas?.stock || 0,
             cover_image: null, 
             _method: datas?.id ? 'PATCH' : 'POST', 
@@ -158,6 +159,22 @@ export default function BooksCreateEdit({ datas, categories }) {
                                     </div>
 
                                     <div className="form-group col-md-4">
+                                        <label className="text-uppercase small font-weight-bold">Discount</label>
+                                        <select
+                                            value={data.discount_id || ''}
+                                            onChange={(e) => setData('discount_id', e.target.value)}
+                                            className="form-control"
+                                        >
+                                            <option value="">No Discount</option>
+                                            {discounts.map((discount) => (
+                                                <option key={discount.id} value={discount.id}>
+                                                    {discount.discount_percent}% ({discount.start_date} - {discount.end_date})
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
+
+                                    <div className="form-group col-md-4">
                                         <label className="text-uppercase small font-weight-bold">
                                             <span className="text-danger">*</span> Stock
                                         </label>
@@ -194,7 +211,7 @@ export default function BooksCreateEdit({ datas, categories }) {
                                                 className="border-2 border-info" 
                                                 style={{width: '150px', height: '200px', objectFit: 'cover', borderRadius: '4px'}}
                                             />
-                                            {image && <p className="text-xs text-muted mt-2">✓ {image.name}</p>}
+                                            {image && <p className="text-xs text-muted mt-2">{image.name}</p>}
                                         </div>
                                     )}
                                     <InputError message={errors.cover_image} />

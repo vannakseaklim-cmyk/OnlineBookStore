@@ -128,7 +128,20 @@ export default function Index({ books, auth, categories }) {
                                     />
                                     
                                     <div className="absolute bottom-2 left-2 bg-white/90 backdrop-blur px-2 py-1 rounded-lg shadow-lg">
-                                        <span className="text-sm font-bold text-gray-900">${book.price}</span>
+                                        {book.discounted_price ? (
+                                            <>
+                                                <span className="text-sm font-bold text-gray-500 line-through mr-1">
+                                                    ${book.price}
+                                                </span>
+                                                <span className="text-sm font-bold text-gray-900">
+                                                    ${book.discounted_price}
+                                                </span>
+                                            </>
+                                        ) : (
+                                            <span className="text-sm font-bold text-gray-900">
+                                                ${book.price}
+                                            </span>
+                                        )}
                                     </div>
 
                                     {isBestSeller(book) && (

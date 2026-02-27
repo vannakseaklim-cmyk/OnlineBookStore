@@ -107,7 +107,19 @@ export default function Cart({ cart, auth }) {
                                                 <span className="w-8 text-center font-bold text-sm text-gray-800">{item.quantity}</span>
                                                 <button onClick={() => handleQuantityChange(item.id, item.quantity + 1)} className="w-8 h-8 flex items-center justify-center hover:bg-white rounded-md transition font-bold text-gray-600">+</button>
                                             </div>
-                                            <p className="font-bold text-[#bda081] text-lg">${(item.book.price * item.quantity).toFixed(2)}</p>
+                                            <span>
+                                                {item.book.discounted_price ? (
+                                                    <>
+                                                        <span className="text-lg font-bold text-[#bda081]">
+                                                            ${(item.book.discounted_price * item.quantity).toFixed(2)}
+                                                        </span>
+                                                    </>
+                                                ) : (
+                                                    <span className="font-bold text-[#bda081] text-lg">
+                                                        ${(item.book.price * item.quantity).toFixed(2)}
+                                                    </span>
+                                                )}
+                                            </span>  
                                         </div>
                                     </div>
                                     {/* Delete Button */}
@@ -123,20 +135,36 @@ export default function Cart({ cart, auth }) {
                         {/* Order Summary Summary Card */}
                         <div className="lg:col-span-1">
                             <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 sticky top-24">
-                                <h2 className="text-xl font-bold text-gray-900 mb-6">Order Summary</h2>
+                                <h2 className="text-xl font-bold text-gray-900 mb-6">Cart Summary</h2>
                                 <div className="space-y-4 mb-6">
-                                    <div className="flex justify-between text-gray-600 text-sm">
-                                        <span>Subtotal</span>
-                                        <span>${totalPrice.toFixed(2)}</span>
+                                    <div className="text-gray-600 text-base space-y-4 mb-6">
+                                        {cart.items && cart.items.length > 0 ? (
+                                            cart.items.map(item => (
+                                                <div key={item.id} className="flex justify-between">
+                                                    <span>
+                                                        {item.book?.title} × {item.quantity}
+                                                    </span>
+                                        
+                                                    <span>
+                                                        {item.book.discounted_price ? (
+                                                            <>
+                                                                <span className="text-sm font-semibold text-[#bda081]">
+                                                                    ${(item.book.discounted_price * item.quantity).toFixed(2)}
+                                                                </span>
+                                                            </>
+                                                        ) : (
+                                                            <span className="font-semibold text-[#bda081] text-sm">
+                                                                ${(item.book.price * item.quantity).toFixed(2)}
+                                                            </span>
+                                                        )}
+                                                    </span> 
+                                                </div>
+                                            ))
+                                        ) : (
+                                            <p className="text-gray-400">No items in cart</p>
+                                        )}
                                     </div>
-                                    <div className="flex justify-between text-gray-600 text-sm">
-                                        <span>Shipping</span>
-                                        <span className="text-gray-600 font-medium">$2.00</span>
-                                    </div>
-                                    <div className="border-t pt-4 flex justify-between items-center font-bold text-xl text-gray-900">
-                                        <span>Total</span>
-                                        <span className="text-[#bda081]">${(totalPrice + 2.00).toFixed(2)}</span>
-                                    </div>
+                                    
                                 </div>
 
                                 {/* Buttons Container */}

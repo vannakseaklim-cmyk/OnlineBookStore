@@ -81,8 +81,6 @@ class OrderController extends Controller
             $order->cancel_reason = $request->cancel_reason;
         }
 
-        
-
         $order->save();
 
         return back();

@@ -23,7 +23,21 @@ export default function Show({ book, auth }) {
                             <p><strong>Pages:</strong> {book.pages}</p>
                             <p><strong>Author:</strong> {book.author}</p>
                             <p><strong>Category:</strong> {book.category?.name || 'No category'}</p>
-                            <p><strong>Price:</strong> {book.price ? `${book.price} $` : 'Not available'}</p>
+                            <p>
+                                <strong>Price:</strong>{' '}
+                                {book.discounted_price ? (
+                                    <>
+                                        <span className="text-gray-500 line-through mr-1">
+                                            {book.price} $
+                                        </span>
+                                        <span className="text-red-600 font-bold">
+                                            {book.discounted_price} $
+                                        </span>
+                                    </>
+                                ) : (
+                                    book.price ? `${book.price} $` : 'Not available'
+                                )}
+                            </p>
                             <p><strong>Description:</strong></p>
                             <p>{book.description || 'No description available.'}</p>
                         </div>
