@@ -13,6 +13,8 @@ export default function OrdersPage({ ordersData }) {
         cancel_reason: '',
     });
 
+    const toNumber = (value) => parseFloat(value || 0);
+
     const ordersList = ordersData?.data || [];
     const [showCancelModal, setShowCancelModal] = useState(false);
     const [selectedOrder, setSelectedOrder] = useState(null);
@@ -46,7 +48,6 @@ const handleStatusChange = (order, newStatus) => {
         });
     }
 };
-
 
     const submitCancel = (e) => {
         e.preventDefault();
@@ -87,12 +88,20 @@ const handleStatusChange = (order, newStatus) => {
                                     </thead>
                                     <tbody>
                                         {ordersList.length > 0 ? (
-                                            ordersList.map((order) => (
-                                                <tr key={order.id}>
-                                                    <td>{order.id}</td>
-                                                    <td>{order.customer?.name || 'Guest'}</td>
-                                                    <td>{moment(order.order_date).format('DD/MM/YYYY HH:mm')}</td>
-                                                    <td><b className="text-primary">${Number(order.order_total + 2).toFixed(2)}</b></td>
+                                            ordersList.map((order) => {
+                                                const totalAmount = order.items?.reduce((sum, item) => {
+                                                    const price = item.book.discounted_price
+                                                        ? parseFloat(item.book.discounted_price || 0)
+                                                        : parseFloat(item.book.price || 0);
+                                                    return sum + price * item.quantity;
+                                                }, 0) + (parseFloat(order.shipping_fee || 0));
+
+                                                return (
+                                                    <tr key={order.id}>
+                                                        <td>{order.id}</td>
+                                                        <td>{order.customer?.name || 'Guest'}</td>
+                                                        <td>{moment(order.order_date).format('DD/MM/YYYY HH:mm')}</td>
+                                                        <td><b className="text-primary">${totalAmount.toFixed(2)}</b></td>
                                                     
                                                     <td>
                                                         <select 
@@ -128,7 +137,8 @@ const handleStatusChange = (order, newStatus) => {
                                                         )}
                                                     </td>
                                                 </tr>
-                                            ))
+                                                )
+        })
                                         ) : (
                                             <tr>
                                                 <td colSpan="8" className="text-center py-4">No orders found.</td>

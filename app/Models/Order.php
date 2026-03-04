@@ -14,6 +14,7 @@ class Order extends Model
     'cancel_reason',
     'phone_number', 
     'shipping_address', 
+    'shipping_fee',
     'payment_method', 
     'transaction_image'
 
@@ -25,9 +26,12 @@ class Order extends Model
 
     public function customer()
     {
-
         return $this->belongsTo(User::class, 'customer_id');
+    }
 
+    public function delivery()
+    {
+        return $this->belongsTo(Delivery::class);
     }
 
     public function getSubtotalAttribute()

@@ -7,6 +7,11 @@ use App\Models\Order;
 use Illuminate\Support\Facades\Auth;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Inertia\Inertia;
+use App\Models\OrderItem;
+use App\Models\Delivery;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Http\Request;
+use App\Models\ShoppingCart;
 
 class OrderController extends Controller
 {
@@ -45,4 +50,5 @@ class OrderController extends Controller
 
         return $pdf->download("invoice-{$order->id}.pdf");
     }
+
 }

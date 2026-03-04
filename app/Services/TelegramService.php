@@ -13,7 +13,6 @@ class TelegramService
 
     public function __construct()
     {
-        
         $this->botToken = config('services.telegram_dev.bot_token');
         $this->chatId = config('services.telegram_dev.chat_id');
     }
@@ -63,8 +62,8 @@ class TelegramService
 
     private function formatTransactionMessage($order, $imagePath)
     {
-        $shipping_fee = 2;
-        $total_with_shipping = $order->order_total + $shipping_fee;
+        $shippingFee = $order->shipping_fee ?? 0;
+        $subtotal = 0;
 
         $message = "<b>📦 NEW ORDER NOTIFICATION</b>\n\n";
         $message .= "<b>Order ID:</b> #{$order->id}\n";
@@ -76,15 +75,23 @@ class TelegramService
         $message .= "<b>📚 Items:</b>\n";
 
         foreach ($order->items as $item) {
-            $item_total = $item->price * $item->quantity;
+
+            $price = $item->book->discounted_price 
+                ? $item->book->discounted_price 
+                : $item->book->price;
+
+            $itemTotal = $price * $item->quantity;
+            $subtotal += $itemTotal;
 
             $message .= "• {$item->book->title}\n";
             $message .= "  Quantity: {$item->quantity}\n";
-            $message .= "  Price: \${$item->price} | Subtotal: \${$item_total}\n";
+            $message .= "  Price: $" . number_format($itemTotal, 2) . "\n\n";
         }
 
-        $message .= "\n<b>🚚 Shipping Fee:</b> \${$shipping_fee}\n";
-        $message .= "<b>💰 Total Amount:</b> \${$total_with_shipping}\n";
+        $totalAmount = $subtotal + $shippingFee;
+
+        $message .= "<b>🚚 Shipping Fee:</b> $" . number_format($shippingFee, 2) . "\n";
+        $message .= "<b>💰 Total Amount:</b> $" . number_format($totalAmount, 2) . "\n";
         $message .= "<b>Payment Method:</b> " . ucfirst($order->payment_method) . "\n";
         $message .= "<b>Status:</b> {$order->status}\n";
         $message .= "<b>Order Date:</b> " . $order->order_date->format('Y-m-d H:i:s') . "\n";
@@ -96,38 +103,32 @@ class TelegramService
         return $message;
     }
 
+    // ✅ THIS IS THE MISSING METHOD (ADDED ONLY THIS)
     private function sendTransactionImage($imagePath, $order)
     {
         try {
+
+            $photoUrl = "{$this->apiUrl}{$this->botToken}/sendPhoto";
             $fullPath = storage_path('app/public/' . $imagePath);
 
-            if (!file_exists($fullPath)) {
-                Log::error('Image file does not exist', ['path' => $fullPath]);
-                return false;
-            }
-
-            $imageContent = file_get_contents($fullPath);
-            $photoUrl = "{$this->apiUrl}{$this->botToken}/sendPhoto";
-
-            Log::info('Sending photo to Telegram', ['url' => $photoUrl, 'file' => basename($imagePath)]);
-
-            $response = Http::timeout(30)->attach(
-                'photo',
-                $imageContent,
-                basename($imagePath)
-            )->post(
-                $photoUrl,
-                [
+            $response = Http::timeout(30)
+                ->attach(
+                    'photo',
+                    file_get_contents($fullPath),
+                    basename($fullPath)
+                )
+                ->post($photoUrl, [
                     'chat_id' => $this->chatId,
-                    'caption' => "Payment proof for Order #{$order->id}",
-                ]
-            );
+                    'caption' => "📸 Payment Proof for Order #{$order->id}",
+                    'parse_mode' => 'HTML',
+                ]);
 
-            Log::info('Photo response: ' . $response->status(), ['body' => $response->body()]);
+            Log::info('Image response: ' . $response->status(), ['body' => $response->body()]);
+
             return $response->successful();
 
         } catch (\Exception $e) {
-            Log::error('Failed to send payment image: ' . $e->getMessage(), ['exception' => (string)$e]);
+            Log::error('Failed to send image: ' . $e->getMessage(), ['exception' => (string)$e]);
             return false;
         }
     }
@@ -161,3 +162,4 @@ class TelegramService
             return false;
         }
     }
+}

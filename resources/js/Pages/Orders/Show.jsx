@@ -11,6 +11,20 @@ export default function OrderShow({ order }) {
         { title: headWeb, url: '' },
     ];
 
+    const toNumber = (value) => parseFloat(value || 0);
+
+    const shippingFee = toNumber(order.shipping_fee);
+
+    // Subtotal from items
+    const subtotal = order.items?.reduce((sum, item) => {
+        const price = item.book.discounted_price
+            ? toNumber(item.book.discounted_price)
+            : toNumber(item.book.price);
+        return sum + price * item.quantity;
+    }, 0);
+
+    const totalAmount = subtotal + shippingFee;
+
     return (
         <AdminLayout breadcrumb={<Breadcrumb header={headWeb} links={linksBreadcrumb} />}>
             <Head title={headWeb} />
@@ -63,7 +77,7 @@ export default function OrderShow({ order }) {
                                 <h3 className="card-title font-weight-bold">Ordered Books</h3>
                                 <div className="card-tools">
                                     <span className="badge badge-primary p-2">
-                                        Total: ${Number(order.order_total + 2).toFixed(2)}
+                                        Total: ${totalAmount.toFixed(2)}
                                     </span>
                                 </div>
                             </div>
@@ -81,10 +95,36 @@ export default function OrderShow({ order }) {
                                         {order.items?.map((item) => (
                                             <tr key={item.id}>
                                                 <td>{item.book?.title || 'Unknown Book'}</td>
-                                                <td className="text-center">${Number(item.price).toFixed(2)}</td>
+                                                <td className="text-center">
+                                                    <span>
+                                                        {item.book.discounted_price ? (
+                                                            <>
+                                                                <span className="text-sm font-weight-bold text-black">
+                                                                    ${(item.book.discounted_price * item.quantity).toFixed(2)}
+                                                                </span>
+                                                            </>
+                                                            ) : (
+                                                                <span className="text-sm font-weight-bold text-black">
+                                                                    ${(item.book.price * item.quantity).toFixed(2)}
+                                                                </span>
+                                                            )}
+                                                    </span> 
+                                                </td>
                                                 <td className="text-center">{item.quantity}</td>
                                                 <td className="text-right font-weight-bold">
-                                                    ${(item.price * item.quantity).toFixed(2)}
+                                                    <span>
+                                                        {item.book.discounted_price ? (
+                                                            <>
+                                                                <span className="text-sm font-weight-bold text-black">
+                                                                    ${(item.book.discounted_price * item.quantity).toFixed(2)}
+                                                                </span>
+                                                            </>
+                                                            ) : (
+                                                                <span className="text-sm font-weight-bold text-black">
+                                                                    ${(item.book.price * item.quantity).toFixed(2)}
+                                                                </span>
+                                                            )}
+                                                    </span> 
                                                 </td>
                                             </tr>
                                         ))}
@@ -94,19 +134,19 @@ export default function OrderShow({ order }) {
                                         <tr>
                                             <th colSpan="3" className="text-right text-muted">Items Subtotal:</th>
                                             <th className="text-right text-muted">
-                                                ${(Number(order.order_total)).toFixed(2)}
+                                                ${subtotal.toFixed(2)}
                                             </th>
                                         </tr>
                                         {/* Shipping Fee */}
                                         <tr>
                                             <th colSpan="3" className="text-right text-muted border-top-0">Shipping Fee:</th>
-                                            <th className="text-right text-muted border-top-0">$2.00</th>
+                                            <th className="text-right text-muted border-top-0">${shippingFee.toFixed(2)}</th>
                                         </tr>
                                             {/* Grand Total */}
                                             <tr className="bg-light">
                                                 <th colSpan="3" className="text-right text-lg">Grand Total:</th>
                                                 <th className="text-right text-primary text-xl">
-                                                    ${Number(order.order_total + 2).toFixed(2)}
+                                                    ${totalAmount.toFixed(2)}
                                                 </th>
                                             </tr>
                                     </tfoot>

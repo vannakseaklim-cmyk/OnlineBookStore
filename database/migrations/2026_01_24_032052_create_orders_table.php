@@ -12,18 +12,21 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('orders', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('customer_id')->constrained('users')->cascadeOnDelete();
-            $table->dateTime('order_date');
-            $table->double('order_total', 10, 2);
-            $table->string('status')->default('pending');
-            $table->text('cancel_reason')->nullable();
-            $table->string('phone_number');
-            $table->text('shipping_address'); // For the location
-            $table->string('payment_method'); // 'online' or 'delivery'
-            $table->string('transaction_image')->nullable(); // Required only for online
-            $table->timestamps();
-        });
+        $table->id();
+        $table->foreignId('customer_id')->constrained('users')->cascadeOnDelete();
+        $table->foreignId('delivery_id')->nullable()->constrained('deliveries')->nullOnDelete();
+        $table->dateTime('order_date');
+        $table->double('order_total', 10, 2);
+        $table->decimal('shipping_fee', 10, 2)->default(0);
+        $table->string('status')->default('pending');
+        $table->text('cancel_reason')->nullable();
+        $table->string('phone_number');
+        $table->text('shipping_address'); 
+        $table->string('payment_method'); 
+        $table->string('transaction_image')->nullable(); 
+        $table->timestamps();
+    });
+
     }
 
     /**
@@ -32,5 +35,6 @@ return new class extends Migration
     public function down(): void
     {
         Schema::dropIfExists('orders');
+       
     }
 };

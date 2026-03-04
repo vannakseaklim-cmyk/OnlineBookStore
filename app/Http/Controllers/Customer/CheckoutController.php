@@ -19,26 +19,26 @@ class CheckoutController extends Controller
 {
     public function index()
     {
-    $cart = ShoppingCart::with('items.book')
-        ->where('customer_id', Auth::id())
-        ->where('status', 0)
-        ->first();
+        $cart = ShoppingCart::with('items.book')
+            ->where('customer_id', Auth::id())
+            ->where('status', 0)
+            ->first();
 
-    if (!$cart || $cart->items->isEmpty()) {
-        return redirect()->route('cart.index')->with('error', 'Your cart is empty.');
+        if (!$cart || $cart->items->isEmpty()) {
+            return redirect()->route('cart.index')->with('error', 'Your cart is empty.');
+        }
+
+        $deliveries = Delivery::all();
+        $qrcodes = QRCode::where('active', true)->get();
+
+        return Inertia::render('Customer/Checkout', [
+            'cart' => $cart,
+            'deliveries' => $deliveries,
+            'qrcodes' => $qrcodes
+        ]);
     }
 
-    $deliveries = Delivery::all();
-    $qrcodes = QRCode::where('active', true)->get();
-
-    return Inertia::render('Customer/Checkout', [
-        'cart' => $cart,
-        'deliveries' => $deliveries,
-        'qrcodes' => $qrcodes
-    ]);
-    }
-
-        public function placeOrder(Request $request)
+    public function placeOrder(Request $request)
     {
         $request->validate([
             'phone_number'      => 'required|string|max:20',
@@ -55,7 +55,15 @@ class CheckoutController extends Controller
             ->where('status', 0)
             ->firstOrFail();
 
-        $total = $cart->items->sum(fn($item) => (float)$item->price * $item->quantity);
+        // Calculate total of books
+        $totalBooks = $cart->items->sum(fn($item) => (float)$item->price * $item->quantity);
+
+        // Fetch selected delivery
+        $delivery = Delivery::find($request->delivery_id);
+        $shippingFee = $delivery?->cost ?? 0;
+
+        // Final total including shipping
+        $totalAmount = $totalBooks + $shippingFee;
 
         $imagePath = null;
         if ($request->hasFile('transaction_image')) {
@@ -63,21 +71,25 @@ class CheckoutController extends Controller
         }
 
         try {
-            return DB::transaction(function () use ($request, $cart, $total, $imagePath) {
+            return DB::transaction(function () use ($request, $cart, $delivery, $shippingFee, $totalAmount, $imagePath) {
+                
+                // Create the order with shipping fee included
                 $order = Order::create([
                     'customer_id'       => Auth::id(),
                     'order_date'        => now(),
-                    'order_total'       => $total,
+                    'order_total'       => $totalAmount,
+                    'shipping_fee'      => $shippingFee,
                     'status'            => 'pending',
                     'phone_number'      => $request->phone_number,
                     'shipping_address'  => $request->shipping_address,
+                    'delivery_id'       => $delivery->id,
                     'payment_method'    => $request->payment_method,
                     'transaction_image' => $imagePath,
                 ]);
 
+                // Create order items and decrement stock
                 foreach ($cart->items as $item) {
                     if ($item->book->stock < $item->quantity) {
-                       
                         throw new \Exception("Sorry, '{$item->book->title}' is out of stock.");
                     }
 
@@ -91,8 +103,10 @@ class CheckoutController extends Controller
                     $item->book->decrement('stock', $item->quantity);
                 }
 
+                // Mark cart as completed
                 $cart->update(['status' => 1]);
 
+                // Send Telegram notification if applicable
                 if ($imagePath || $request->payment_method === 'online') {
                     $telegramService = new TelegramService();
                     $telegramService->sendTransactionNotification($order->load('items.book', 'customer'), $imagePath);
@@ -101,9 +115,7 @@ class CheckoutController extends Controller
                 return redirect()->route('customer.orders.index')->with('success', 'Order placed successfully!');
             });
         } catch (\Exception $e) {
-           
             return back()->with('error', $e->getMessage());
         }
     }
-
 }
